@@ -13,9 +13,7 @@ import software.amazon.awssdk.services.rekognition.model.DetectFacesRequest;
 import software.amazon.awssdk.services.rekognition.model.DetectFacesResponse;
 import software.amazon.awssdk.services.rekognition.model.Emotion;
 import software.amazon.awssdk.services.rekognition.model.FaceDetail;
-import software.amazon.awssdk.services.rekognition.model.QualityFilter;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -29,6 +27,7 @@ public class FacialService {
         this.rekognitionClient = rekognitionClient;
     }
 
+//   ->> REMOVE AZURE SERVICE, NO TIME TO WAIT THEIR PERMISSION TO GET OTHER INFORMATIONS OF RESPONSE'S API <<-
 //    public void getInfoFacial() {
 //        String endpoint = "";
 //        String apiKey = "";
@@ -105,7 +104,7 @@ public class FacialService {
 
     public void getFacialInformationByAws() {
 
-        SdkBytes finalByteImage = getSdkBytesByImage("eu_muito_escuro.jpg");
+        SdkBytes finalByteImage = getSdkBytesByImage("img/eu_no_escuro.jpg");
         DetectFacesRequest request = DetectFacesRequest.builder()
                 .image(i -> i.bytes(finalByteImage))
                 .attributes(Attribute.ALL)
@@ -128,8 +127,8 @@ public class FacialService {
     }
 
     public void comparingFacialImages() {
-        SdkBytes finalImageOne = getSdkBytesByImage("eu_normal.jpg");
-        SdkBytes finalImageTwo = getSdkBytesByImage("eu_no_escuro.jpg");
+        SdkBytes finalImageOne = getSdkBytesByImage("img/eu_normal.jpg");
+        SdkBytes finalImageTwo = getSdkBytesByImage("img/eu_no_escuro.jpg");
 
         CompareFacesRequest requestComparingFaces =
                 CompareFacesRequest.builder()
