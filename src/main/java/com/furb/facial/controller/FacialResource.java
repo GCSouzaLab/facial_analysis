@@ -24,4 +24,19 @@ public class FacialResource {
     public void compararImagens() {
         facialService.comparingFacialImages();
     }
+
+    @GetMapping("/encontrar-celebridade")
+    public void encontrarCelebridade() {
+        facialService.recognizeCelebritiesFromImage();
+    }
+
+    @GetMapping("/encontrar-conteudo-improprio")
+    public void encontrarConteudoImproprio() {
+        facialService.detectModerationLabels();
+    }
+
+    @GetMapping("/encontrar-objeto")
+    public void encontrarObjeto() {
+        facialService.detectLabels();
+    }
 }

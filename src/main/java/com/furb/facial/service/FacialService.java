@@ -5,14 +5,23 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.rekognition.RekognitionClient;
 import software.amazon.awssdk.services.rekognition.model.Attribute;
 import software.amazon.awssdk.services.rekognition.model.BoundingBox;
+import software.amazon.awssdk.services.rekognition.model.Celebrity;
 import software.amazon.awssdk.services.rekognition.model.CompareFacesMatch;
 import software.amazon.awssdk.services.rekognition.model.CompareFacesRequest;
 import software.amazon.awssdk.services.rekognition.model.CompareFacesResponse;
 import software.amazon.awssdk.services.rekognition.model.ComparedFace;
 import software.amazon.awssdk.services.rekognition.model.DetectFacesRequest;
 import software.amazon.awssdk.services.rekognition.model.DetectFacesResponse;
+import software.amazon.awssdk.services.rekognition.model.DetectLabelsRequest;
+import software.amazon.awssdk.services.rekognition.model.DetectLabelsResponse;
+import software.amazon.awssdk.services.rekognition.model.DetectModerationLabelsRequest;
+import software.amazon.awssdk.services.rekognition.model.DetectModerationLabelsResponse;
 import software.amazon.awssdk.services.rekognition.model.Emotion;
 import software.amazon.awssdk.services.rekognition.model.FaceDetail;
+import software.amazon.awssdk.services.rekognition.model.Label;
+import software.amazon.awssdk.services.rekognition.model.ModerationLabel;
+import software.amazon.awssdk.services.rekognition.model.RecognizeCelebritiesRequest;
+import software.amazon.awssdk.services.rekognition.model.RecognizeCelebritiesResponse;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,84 +36,12 @@ public class FacialService {
         this.rekognitionClient = rekognitionClient;
     }
 
-//   ->> REMOVE AZURE SERVICE, NO TIME TO WAIT THEIR PERMISSION TO GET OTHER INFORMATIONS OF RESPONSE'S API <<-
-//    public void getInfoFacial() {
-//        String endpoint = "";
-//        String apiKey = "";
-//        String imageUrl = "FOTO_SORRINDO.jpg";
-//
-//        // Cria o cliente da API
-//        FaceClient client = new FaceClientBuilder()
-//                .endpoint(endpoint)
-//                .credential(new AzureKeyCredential(apiKey))
-//                .buildClient();
-//
-//        // Configura os atributos a serem recuperados
-//        List<FaceAttributeType> atributos = Arrays.asList(
-//                FaceAttributeType.AGE,
-//                FaceAttributeType.GLASSES,
-//                FaceAttributeType.FACIAL_HAIR,
-//                FaceAttributeType.HEAD_POSE,
-//                FaceAttributeType.QUALITY_FOR_RECOGNITION,
-//                FaceAttributeType.OCCLUSION,
-//                FaceAttributeType.EXPOSURE,
-//                FaceAttributeType.NOISE,
-//                FaceAttributeType.BLUR
-//        );
-//
-//        // Opções de detecção
-//        DetectOptions options = new DetectOptions(FaceDetectionModel.DETECTION_03, FaceRecognitionModel.RECOGNITION_04, false);
-//        try {
-//            // Detecta rostos na imagem
-//            List<FaceDetectionResult> rostos = client.detect(imageUrl, options);
-//
-//            if (rostos.isEmpty()) {
-//                System.out.println("Nenhum rosto detectado.");
-//                return;
-//            }
-//
-//            // Processa cada rosto detectado
-//            for (FaceDetectionResult rosto : rostos) {
-//                System.out.println("======== DETALHES DO ROSTO ========");
-//
-//                // Geometria
-//                FaceRectangle retangulo = rosto.getFaceRectangle();
-//                System.out.printf("Posição: [Top: %d, Left: %d, Width: %d, Height: %d]%n",
-//                        retangulo.getTop(), retangulo.getLeft(), retangulo.getWidth(), retangulo.getHeight());
-//
-//                // Atributos
-//                FaceAttributes atributosRosto = rosto.getFaceAttributes();
-//                System.out.printf("Idade estimada: %.1f anos%n", atributosRosto.getAge());
-//                System.out.println("Óculos: " + atributosRosto.getGlasses());
-//
-//                // Detalhes faciais
-//                FacialHair peloFacial = atributosRosto.getFacialHair();
-//                System.out.printf("Barba: %.2f%% | Bigode: %.2f%% | Costeletas: %.2f%%%n",
-//                        peloFacial.getBeard(), peloFacial.getMoustache(), peloFacial.getSideburns());
-//
-//                // Qualidade técnica
-//                System.out.println("Qualidade para reconhecimento: " + atributosRosto.getQualityForRecognition());
-//                System.out.printf("Oclusão: Sobrancelhas=%s, Olhos=%s, Boca=%s%n",
-//                        atributosRosto.getOcclusion().isEyeOccluded(),
-//                        atributosRosto.getOcclusion().isForeheadOccluded(),
-//                        atributosRosto.getOcclusion().isMouthOccluded());
-//
-//                System.out.printf("Exposição: %s | Ruído: %s | Desfoque: %s%n",
-//                        atributosRosto.getExposure().getValue(),
-//                        atributosRosto.getNoise().getValue(),
-//                        atributosRosto.getBlur().getValue());
-//
-//                System.out.println("===================================");
-//            }
-//
-//        } catch (Exception e) {
-//            System.err.println("Erro na chamada da API: " + e.getMessage());
-//        }
-//    }
-
+    /**
+     * Mostrar informações da face e emoções.
+     */
     public void getFacialInformationByAws() {
 
-        SdkBytes finalByteImage = getSdkBytesByImage("img/eu_no_escuro.jpg");
+        SdkBytes finalByteImage = getSdkBytesByImage("img/nojinho.jpg");
         DetectFacesRequest request = DetectFacesRequest.builder()
                 .image(i -> i.bytes(finalByteImage))
                 .attributes(Attribute.ALL)
@@ -116,6 +53,7 @@ public class FacialService {
             System.out.println("Idade estimada: " + face.ageRange().low() + " - " + face.ageRange().high());
             System.out.println("Gênero: " + face.gender().value());
             System.out.println("Sorrindo: " + face.smile().value());
+            System.out.println("Olho esta aberto? : " + face.eyesOpen());
             System.out.println("Emoções:");
             for (Emotion emotion : face.emotions()) {
                 System.out.println(" - " + emotion.type() + ": " + emotion.confidence());
@@ -126,9 +64,12 @@ public class FacialService {
         rekognitionClient.close();
     }
 
+    /**
+     * Comparação de faces.
+     */
     public void comparingFacialImages() {
         SdkBytes finalImageOne = getSdkBytesByImage("img/eu_normal.jpg");
-        SdkBytes finalImageTwo = getSdkBytesByImage("img/eu_no_escuro.jpg");
+        SdkBytes finalImageTwo = getSdkBytesByImage("img/daniel.jpg");
 
         CompareFacesRequest requestComparingFaces =
                 CompareFacesRequest.builder()
@@ -161,6 +102,77 @@ public class FacialService {
         rekognitionClient.close();
     }
 
+    /**
+     * Identificação de celebridades.
+     */
+    public void recognizeCelebritiesFromImage() {
+        SdkBytes imageBytes = getSdkBytesByImage("img/thaina_celebridade.jpg");
+
+        RecognizeCelebritiesRequest request = RecognizeCelebritiesRequest.builder()
+                .image(i -> i.bytes(imageBytes))
+                .build();
+
+        RecognizeCelebritiesResponse response = rekognitionClient.recognizeCelebrities(request);
+
+        List<Celebrity> celebs = response.celebrityFaces();
+        if (celebs.isEmpty()) {
+            System.out.println("Nenhuma celebridade reconhecida.");
+        } else {
+            for (Celebrity celeb : celebs) {
+                System.out.println("Nome da celebridade: " + celeb.name());
+                System.out.println("Confiança: " + celeb.matchConfidence());
+                System.out.println("Links: " + celeb.urls());
+                System.out.println("----");
+            }
+        }
+
+        rekognitionClient.close();
+    }
+
+    /**
+     * Identificação de objetos/coisas impróprias.
+     */
+    public void detectModerationLabels() {
+        SdkBytes imageBytes = getSdkBytesByImage("img/cigarro.jpg");
+
+        DetectModerationLabelsRequest request = DetectModerationLabelsRequest.builder()
+                .image(i -> i.bytes(imageBytes))
+                .minConfidence(75F)
+                .build();
+
+        DetectModerationLabelsResponse response = rekognitionClient.detectModerationLabels(request);
+
+        System.out.println("Moderação encontrada:");
+        for (ModerationLabel label : response.moderationLabels()) {
+            System.out.printf("- %s (confiança: %.2f%%)%n", label.name(), label.confidence());
+        }
+
+        rekognitionClient.close();
+    }
+
+    /**
+     * Identificação de objetos.
+     */
+    public void detectLabels() {
+        SdkBytes imageBytes = getSdkBytesByImage("img/objetos2.jpg");
+
+        DetectLabelsRequest request = DetectLabelsRequest.builder()
+                .image(i -> i.bytes(imageBytes))
+                .maxLabels(20)
+                .minConfidence(75F)
+                .build();
+
+        DetectLabelsResponse response = rekognitionClient.detectLabels(request);
+
+        System.out.println("Rótulos detectados:");
+        for (Label label : response.labels()) {
+            System.out.printf("- %s (confiança: %.2f%%)%n", label.name(), label.confidence());
+        }
+
+        rekognitionClient.close();
+    }
+
+
     private static SdkBytes getSdkBytesByImage(String imagePath) {
         try {
             byte[] imageBytes = Files.readAllBytes(Paths.get(imagePath));
@@ -169,5 +181,4 @@ public class FacialService {
             throw new RuntimeException("Erro ao ler a imagem: " + imagePath, e);
         }
     }
-
 }
